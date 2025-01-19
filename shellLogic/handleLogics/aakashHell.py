@@ -126,6 +126,31 @@ class AakashCLI(Plugin):
                 subject = response[0]
                 console = Console()
 
+                if args.all:
+                    #print("Subject:",json.dumps(subject,indent=4))
+                    for unit in subject:
+                        unit_id      =    unit['id']
+                        name    =  unit['name']
+
+                        Global.sprint(f"Now downloading unit {name} with id {unit_id}")
+
+                        # get assets for this unit
+
+                        response = self.eps.CHAPTER(args.package, args.subject, unit_id).fetch()
+
+                        assets = response[0]['z']
+                        download_unit(
+                            eps=self.eps,
+                            package=args.package,
+                            subject=args.subject,
+                            unit=unit_id,
+                            assets=assets
+                        )
+
+
+
+
+
                 console.print(subject.to_console_table())
             else:
                 Global.errprint(f"Subject is invalid!")
