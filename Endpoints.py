@@ -1,3 +1,5 @@
+import json
+
 from rich.console import Console
 from rich.table import Table
 from Endpoint import Endpoint
@@ -5,7 +7,6 @@ from glv import Global
 
 
 class Package(dict):
-
     class Course:
 
         def __init__(self, data):
@@ -18,15 +19,12 @@ class Package(dict):
 
         def __dict__(self):
             return {
-                "id" : self.id,
-                "slug" : self.slug,
-                "name" : self.name
+                "id": self.id,
+                "slug": self.slug,
+                "name": self.name
             }
 
-    def __init__(self ,data):
-
-
-
+    def __init__(self, data):
         self.id = data['id']
         self.name = data['title']
         self.courses = [Package.Course(course) for course in data['courses']]
@@ -35,7 +33,6 @@ class Package(dict):
             "name": self.name,
             "courses": [course.__dict__() for course in self.courses]
         })
-
 
     def __str__(self):
         return f"""
@@ -53,7 +50,7 @@ class Package(dict):
         }
 
     def to_console_table(self):
-        table = Table(title=self.name, width=Global.term_col()-20)
+        table = Table(title=self.name, width=Global.term_col() - 20)
         table.add_column("ID")
         table.add_column("Slug")
         table.add_column("Name")
@@ -89,7 +86,7 @@ class Chapter(dict):
         }
 
     def to_console_table(self):
-        table = Table(title=self.name, width=Global.term_col()-20)
+        table = Table(title=self.name, width=Global.term_col() - 20)
         table.add_column("ID")
         table.add_column("Name")
         table.add_row(
@@ -97,6 +94,7 @@ class Chapter(dict):
             self.name
         )
         return table
+
 
 class Chapters(list):
 
@@ -112,7 +110,7 @@ class Chapters(list):
         return [chapter.__dict__() for chapter in self]
 
     def to_console_table(self):
-        table = Table(title="CHAPTERS", width=Global.term_col()-20)
+        table = Table(title="CHAPTERS", width=Global.term_col() - 20)
         table.add_column("ID")
         table.add_column("Name")
         for chapter in self:
@@ -124,7 +122,6 @@ class Chapters(list):
 
 
 class ChapterComplete(dict):
-
     class Asset(list):
         def __init__(self, data):
             self.id = data['id']
@@ -139,7 +136,7 @@ class ChapterComplete(dict):
             }
 
     class Assets:
-        def __init__(self,asset_type,data):
+        def __init__(self, asset_type, data):
             self.type = asset_type
             self.objects = [ChapterComplete.Asset(asset) for asset in data]
 
@@ -152,23 +149,23 @@ class ChapterComplete(dict):
     def __init__(self, data):
         self.id = data['id']
 
-        self.list_of_assets = [ChapterComplete.Assets(asset_type,asset) for asset_type,asset in data['assets'].items()]
+        self.list_of_assets = [ChapterComplete.Assets(asset_type, asset) for asset_type, asset in
+                               data['assets'].items()]
         super().__init__(
             {
                 "id": self.id,
-                "assets": [asset.__dict__() for asset in self.list_of_assets]
+                "z": [asset.__dict__() for asset in self.list_of_assets]
             }
         )
 
     def to_console_table(self):
-        table = Table(title="CHAPTER", width=Global.term_col()-20)
+        table = Table(title="CHAPTER", width=Global.term_col() - 20)
         table.add_column("ID")
         table.add_column("Assets")
 
-
         for assets in self.list_of_assets:
             print("Asset : ", assets.type)
-            assets_table = Table(title=assets.type, width=Global.term_col()-20)
+            assets_table = Table(title=assets.type, width=Global.term_col() - 20)
 
             assets_table.add_column("ID")
             assets_table.add_column("Name")
@@ -200,9 +197,26 @@ class Endpoints:
             'x-client-id': self.client_id
         }
 
+    def LOGIN(self, username, password):
+
+        payload={
+            "psid_or_mobile": username,
+            "password": password,
+            "profile": "student"
+        }
 
 
 
+        return Endpoint(
+            url="https://session-service.aakash.ac.in/prod/sess/api/v1/user/session/",
+            method='POST',
+            headers={
+                "content-type": "application/json",
+                'x-client-id': "a6fbf1d2-27c3-46e1-b149-0380e506b763"
+            },
+            payload=json.dumps(payload)
+
+        )
 
     def PACKAGES(self):
         return Endpoint(
@@ -229,7 +243,6 @@ class Endpoints:
             post_function=lambda data: Chapters(data['data']['chapters'])
         )
 
-
     def CHAPTER(self, package_id, course_id, chapter_id):
         return Endpoint(
             url=f"https://session-service.aakash.ac.in/prod/chl/api/v2/itutor/package/{package_id}/course/{course_id}/chapter/?node_id={chapter_id}",
@@ -240,7 +253,7 @@ class Endpoints:
 
     def ASSET(self, package_id, course_id, chapter_id, asset_id, asset_type="ebook"):
         return Endpoint(
-        url=f"https://session-service.aakash.ac.in/prod/chl/api/v1/itutor/package/{package_id}/course/{course_id}/chapter/{chapter_id}/asset/{asset_id}/?asset_type={asset_type}",
+            url=f"https://session-service.aakash.ac.in/prod/chl/api/v1/itutor/package/{package_id}/course/{course_id}/chapter/{chapter_id}/asset/{asset_id}/?asset_type={asset_type}",
             method='GET',
             headers=self.headers
         )

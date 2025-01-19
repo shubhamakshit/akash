@@ -1,3 +1,5 @@
+import os
+
 from Endpoints import Endpoints
 from Plugin import Plugin
 from argparse import ArgumentParser
@@ -8,6 +10,30 @@ from userPrefs import PreferencesLoader
 import base64
 
 from utils.Utils import Utils
+
+def download_asset(topic):
+    Global.sprint(f"Topic is valid!")
+    # topic = response[0]['data']
+    console = Console()
+
+    license = topic['license']
+
+    # base64 decode this license
+    license = base64.b64decode(license).strip().decode('utf-8')
+    url = topic['url']
+
+    import requests
+    response = requests.get(url)
+
+    # get file name
+    enc_file_name = Utils.safe_file_name(url.split('/')[-1]).replace(".pdf", ".enc.pdf")
+    file_name = Utils.safe_file_name(url.split('/')[-1])
+    with open(enc_file_name, "wb") as f:
+        f.write(response.content)
+
+    Utils.remove_pdf_password(enc_file_name, file_name, license)
+
+    os.remove(enc_file_name)
 
 
 class AakashCLI(Plugin):
@@ -28,22 +54,26 @@ class AakashCLI(Plugin):
         self.register_commands()
 
     def hell(self, args):
-        
-        parser = ArgumentParser()
+
+        parser = ArgumentParser(
+            description="Download aakash's pdf"
+        )
+
         parser.add_argument("-P", "--package", help="Package ID", type=str)
-        parser.add_argument("-C","--subject", help="Subject ID", type=str)
+        parser.add_argument("-C", "--subject", help="Subject ID", type=str)
         parser.add_argument("-U", "--unit", help="Unit ID", type=str)
         parser.add_argument("-T", "--topic", help="Topic ID", type=str)
+        parser.add_argument("--all","-A", help="Download all the pdfs", action="store_true")
 
         args = parser.parse_args(args)
-         # if only package is provided
+        # if only package is provided
         if args.package and not args.subject and not args.unit and not args.topic:
             response = self.eps.PACKAGES().fetch()
             if response[1] == 200:
                 Global.sprint(f"Package is valid!")
                 packages = response[0]
                 console = Console()
-                table = Table(title="Packages", width=Global.term_col()-20)
+                table = Table(title="Packages", width=Global.term_col() - 20)
                 table.add_column("ID")
                 table.add_column("Name")
                 table.add_column("Courses")
@@ -70,12 +100,12 @@ class AakashCLI(Plugin):
 
         # if package and subject is provided
         elif args.package and args.subject and not args.unit and not args.topic:
-            response = self.eps.CHAPTERS(args.package,args.subject).fetch()
+            response = self.eps.CHAPTERS(args.package, args.subject).fetch()
             if response[1] == 200:
                 Global.sprint(f"Subject is valid!")
                 subject = response[0]
                 console = Console()
-                
+
                 console.print(subject.to_console_table())
             else:
                 Global.errprint(f"Subject is invalid!")
@@ -83,40 +113,30 @@ class AakashCLI(Plugin):
 
         # if chapter is also provided
         elif args.package and args.subject and args.unit and not args.topic:
-            response = self.eps.CHAPTER(args.package,args.subject,args.unit).fetch()
+            response = self.eps.CHAPTER(args.package, args.subject, args.unit).fetch()
             if response[1] == 200:
                 Global.sprint(f"Unit is valid!")
                 unit = response[0]
                 console = Console()
-                
+
                 console.print(unit.to_console_table())
+
+                if args.all:
+                    for topic in unit.topics:
+                        response = self.eps.ASSET(args.package, args.subject, args.unit, topic.id).fetch()
+                        if response[1] == 200:
+                            download_asset(response[0]['data'])
+                        else:
+                            Global.errprint(f"Topic is invalid!")
+                            exit(1)
             else:
                 Global.errprint(f"Unit is invalid!")
                 exit(1)
 
         elif args.package and args.subject and args.unit and args.topic:
-            response = self.eps.ASSET(args.package,args.subject,args.unit,args.topic).fetch()
+            response = self.eps.ASSET(args.package, args.subject, args.unit, args.topic).fetch()
             if response[1] == 200:
-                Global.sprint(f"Topic is valid!")
-                topic = response[0]['data']
-                console = Console()
-
-                license = topic['license']
-
-                # base64 decode this license
-                license=base64.b64decode(license).strip().decode('utf-8')
-                url = topic ['url']
-
-                import requests
-                response = requests.get(url)
-
-                # get file name 
-                enc_file_name = Utils.safe_file_name(url.split('/')[-1]).replace(".pdf",".enc.pdf")
-                file_name = Utils.safe_file_name(url.split('/')[-1])
-                with open(enc_file_name, "wb") as f:
-                    f.write(response.content)
-
-                Utils.remove_pdf_password(enc_file_name, file_name, license)
+                download_asset(response[0]['data'])
 
             else:
                 Global.errprint(f"Topic is invalid!")

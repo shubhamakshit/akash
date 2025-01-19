@@ -29,7 +29,7 @@ def main():
     # Command-line interface loop
     while True:
         try:
-            user_input = session.prompt('|pwdl> ', completer=custom_completer)
+            user_input = session.prompt('|aakash-dl> ', completer=custom_completer)
 
             # just in case the user hits enter without typing anything
             if not user_input: continue
@@ -38,16 +38,22 @@ def main():
             args = user_input.split()[1:]
             if not args: args = []
 
-            # check if first arg is /? or -h or --help
-            if args and args[0] in ['/?', '-h', '--help']:
-                logic.execute_help(command)
-            else:
-                logic.execute(command, args)
+            try:
+                # check if first arg is /? or -h or --help
+                if args and args[0] in ['/?', '-h', '--help']:
+                    logic.execute_help(command)
+                else:
+                    logic.execute(command, args)
+            except Exception as e:
+                print(f"Error: {e}")
 
         except KeyboardInterrupt:
             continue
         except EOFError:
             break
+        except SystemExit:
+            if command == 'exit':
+                break
 
 
 if __name__ == "__main__":

@@ -4,3 +4,5 @@ __pycache__/error.cpython-311.pyc
 /shellLogic/__pycache__
 /shellLogic/handleLogics/__pycache__
 /utils/__pycache__
+*.pdf
+/__pycache__
