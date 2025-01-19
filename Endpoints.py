@@ -237,3 +237,10 @@ class Endpoints:
             headers=self.headers,
             post_function=lambda data: ChapterComplete(data['data']['chapter'])
         )
+
+    def ASSET(self, package_id, course_id, chapter_id, asset_id, asset_type="ebook"):
+        return Endpoint(
+        url=f"https://session-service.aakash.ac.in/prod/chl/api/v1/itutor/package/{package_id}/course/{course_id}/chapter/{chapter_id}/asset/{asset_id}/?asset_type={asset_type}",
+            method='GET',
+            headers=self.headers
+        )

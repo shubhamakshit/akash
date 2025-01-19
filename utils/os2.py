@@ -1,9 +1,12 @@
 import platform
 import os
 
+import pikepdf
+
 from error import CouldNotMakeDir, DependencyNotFound
 from utils.process import shell
 from glv import Global
+
 
 
 # 0 - linux

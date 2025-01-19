@@ -1,2 +1,6 @@
 
 __pycache__/error.cpython-311.pyc
+/__pycache__
+/shellLogic/__pycache__
+/shellLogic/handleLogics/__pycache__
+/utils/__pycache__
