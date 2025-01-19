@@ -1,3 +1,4 @@
+import json
 import os
 
 from Endpoints import Endpoints
@@ -10,6 +11,25 @@ from userPrefs import PreferencesLoader
 import base64
 
 from utils.Utils import Utils
+
+def download_unit(
+        eps,
+        package,
+        subject,
+        unit,
+        assets):
+
+
+
+    for asset_dict in assets:
+        if asset_dict['type'] == "ebooks":
+            for asset in asset_dict['objects']:
+                response = eps.ASSET(package, subject, unit, asset[0]).fetch()
+                if response[1] == 200:
+                    download_asset(response[0]['data'])
+                else:
+                    Global.errprint(f"Asset is invalid!")
+                    exit(1)
 
 def download_asset(topic):
     Global.sprint(f"Topic is valid!")
@@ -122,13 +142,16 @@ class AakashCLI(Plugin):
                 console.print(unit.to_console_table())
 
                 if args.all:
-                    for topic in unit.topics:
-                        response = self.eps.ASSET(args.package, args.subject, args.unit, topic.id).fetch()
-                        if response[1] == 200:
-                            download_asset(response[0]['data'])
-                        else:
-                            Global.errprint(f"Topic is invalid!")
-                            exit(1)
+                    unit = response[0]
+                    assets = unit['z']
+
+                    download_unit(
+                        eps=self.eps,
+                        package=args.package,
+                        subject=args.subject,
+                        unit=args.unit,
+                        assets=assets
+                    )
             else:
                 Global.errprint(f"Unit is invalid!")
                 exit(1)
