@@ -1,7 +1,7 @@
 import sys
 
 from Plugin import Plugin
-from os2 import SysFunc
+from utils.os2 import SysFunc
 
 os2 = SysFunc()
 

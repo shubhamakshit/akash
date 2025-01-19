@@ -18,6 +18,7 @@ errorList = {
     },
 }
 
+
 class AKDLError(Exception):
     def __init__(self, message, code=999, func=None, verbose=False):
         self.message = message
@@ -28,7 +29,6 @@ class AKDLError(Exception):
         super().__init__(self.message)
 
     def __str__(self):
-
         # Color the output
         return f"Akdl Error: {self.message} Failed with code {self.code}"
 
@@ -36,11 +36,13 @@ class AKDLError(Exception):
         Global.errprint(self.__str__())
         exit(self.code)
 
+
 class CantLoadFile(AKDLError):
     def __init__(self, fileName):
         super().__init__(errorList["cantLoadFile"]["message_template"].format(fileName=fileName),
                          errorList["cantLoadFile"]["code"],
                          errorList["cantLoadFile"]["func"])
+
 
 class CouldNotMakeDir(AKDLError):
     def __init__(self, dirName):
@@ -48,9 +50,9 @@ class CouldNotMakeDir(AKDLError):
                          errorList["couldNotMakeDir"]["code"],
                          errorList["couldNotMakeDir"]["func"])
 
+
 class DependencyNotFound(AKDLError):
     def __init__(self, dependency):
         super().__init__(errorList["dependencyNotFound"]["message_template"].format(dependency=dependency),
                          errorList["dependencyNotFound"]["code"],
                          errorList["dependencyNotFound"]["func"])
-
